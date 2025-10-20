@@ -1,18 +1,16 @@
-// src/App.jsx
 import React, { useState } from "react";
 import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import TopBar from "./components/TopBar";
-import Footer from "./components/Footer";
-import FloatingDarkModeButton from "./components/FloatingDarkModeButton";
-
+import TopBar from "./components/misc/TopBar";
+import Footer from "./components/misc/Footer";
+import FloatingDarkModeButton from "./components/misc/FloatingDarkModeButton";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Supervised from "./pages/Supervised";
 import Unsupervised from "./pages/Unsupervised";
-import DeepLearning from "./pages/Deep_Learning";
+import Deep_Learning from "./pages/Deep_Learning";
 import Testing from "./pages/Testing";
 
 function App() {
@@ -50,7 +48,7 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/testing/supervised" element={<Supervised />} />
                 <Route path="/testing/unsupervised" element={<Unsupervised />} />
-                <Route path="/testing/deep-learning" element={<DeepLearning />} />
+                <Route path="/testing/deep-learning" element={<Deep_Learning />} />
                 <Route path="/testing" element={<Testing />} />
             </Routes>
             </Box>

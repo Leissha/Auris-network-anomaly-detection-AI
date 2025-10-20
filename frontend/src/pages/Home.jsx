@@ -1,6 +1,6 @@
 import React from "react";
-import HeroSection from "../components/HeroSection";
-import ContentIsland from "../components/ContentIsland";
+import HeroSection from "../components/misc/HeroSection";
+import ContentIsland from "../components/misc/ContentIsland";
 
 const Home = () => {
   return (

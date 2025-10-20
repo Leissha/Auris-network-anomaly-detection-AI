@@ -4,7 +4,7 @@ import { ProbabilityColumnChart } from "./ProbabilityColumnChart";
 
 const simulationPresets = {
     'DoS': [0.0, 0.000336, 0.0, 0.0, 4.7e-05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    'Bruteforce':  [0.525122, 0.000336, 0.352941, 0.165951, 0.000944, 0.001881, 7e-05, 9.3e-05, 0.643275, 0.0, 0.067669, 0.197067, 0.783383, 0.0, 0.049119],
+    'Bruteforce':  [0.85, 0.000336, 0.75, 0.165951, 0.000944, 0.001881, 7e-05, 9.3e-05, 0.643275, 0.0, 0.067669, 0.197067, 0.783383, 0.0, 0.049119],
     'Background': [0.924297, 0.000336, 0.352941, 0.0, 4.7e-05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 };
 
@@ -64,18 +64,25 @@ const DeepHero = () => {
         setFeatureVector(newVector);
     };
     return (
-        <Box sx={{ px: 4, textAlign: 'center' }}>            
+        <Box sx={{ px: 4, textAlign: 'center' }}>              
             <Box sx={{ display: 'inline-block', position: 'relative', minHeight: '400px', mt: 8 }}>
                 {isLoading && <CircularProgress sx={{ position: 'absolute', top: '50%', left: '50%', zIndex: 11, mt: '-20px', ml: '-20px' }} />}
-                
-                <Box sx={{ opacity: isLoading ? 0.3 : 1, transition: 'opacity 0.3s' }}>
-                    {probabilities ? (
-                        <ProbabilityColumnChart probabilities={probabilities} classLabels={CLASS_LABELS} isDark={isDark} />
-                    ) : (
-                         <Box sx={{width: '860px', height: '575px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                            <Typography sx={{ color: isDark ? '#AAA' : '#555' }}>Loading prediction...</Typography>
-                         </Box>
-                    )}
+                <Box sx={{
+                    padding: '32px',
+                    borderRadius: '16px',
+                    background: isDark ? '#222' : 'transparent',
+                    boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : 'none',
+                    transition: 'background 0.3s ease-in-out',
+                }}>
+                    <Box sx={{ opacity: isLoading ? 0.3 : 1, transition: 'opacity 0.3s' }}>
+                        {probabilities ? (
+                            <ProbabilityColumnChart probabilities={probabilities} classLabels={CLASS_LABELS} isDark={isDark} />
+                        ) : (
+                            <Box sx={{width: '860px', height: '575px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                <Typography sx={{ color: isDark ? '#AAA' : '#555' }}>Loading prediction...</Typography>
+                            </Box>
+                        )}
+                    </Box>
                 </Box>
                 <Stack 
                     direction="row" 
@@ -83,7 +90,7 @@ const DeepHero = () => {
                     justifyContent="center" 
                     sx={{
                         position: 'absolute',
-                        top: '65px',
+                        top: '97px',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         zIndex: 10,
@@ -116,15 +123,13 @@ const DeepHero = () => {
                     ))}
                 </Stack>
             </Box>
-            
             <Grid 
                 container 
                 spacing={4} 
                 justifyContent="center" 
                 alignItems="center"
                 sx={{ 
-                    maxWidth: '960px', margin: '0 auto', mt: '-20px',
-                    position: 'relative', zIndex: 1,
+                    maxWidth: '960px', margin: '0 auto', mt: '-20px', position: 'relative', zIndex: 1,
                     p: {xs: 2, md: 4}, borderRadius: '16px',
                     backgroundColor: isDark ? '#1C1C1C' : '#EFF0EB',
                     boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.1)',

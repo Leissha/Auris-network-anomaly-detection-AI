@@ -1,9 +1,10 @@
 # uvicorn serve:app --host 0.0.0.0 --port 8000 --reload
 # UI: http://127.0.0.1:8000/docs
 import os
-from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Path
+from typing import List, Optional
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 from pydantic import BaseModel
 from utils.model_io import list_models, load_model
 from config import get_model_dir
@@ -12,74 +13,56 @@ import pickle
 import numpy as np
 import pandas as pd
 
-
-class PredictRequest(BaseModel):
+class PredictRequestNew(BaseModel):
     instances: List[List[float]]
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "instances": [
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-                    ]
-                }
-            ]
-        }
-    }
 
+class PredictRequestLegacy(BaseModel):
+    model: str
+    instances: List[List[float]]
 
 class PredictResponse(BaseModel):
     model: str
     predictions: List[int]
     probabilities: Optional[List[List[float]]] = None
 
+app = FastAPI(title="Model Inference API", version="2.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-app = FastAPI(title="Model Inference API", version="1.0.0")
-
-# Load and cache the scaler for 15 selected features
 def load_selected_features_scaler():
     """Load the scaler for the 15 selected features"""
     try:
         with open('data_preprocessing/output/feature_metadata.pkl', 'rb') as f:
             metadata = pickle.load(f)
-        return metadata.get('selected_features_scaler')
+        scaler = metadata.get('selected_features_scaler')
+        if scaler:
+            print("Preprocessing scaler loaded successfully.")
+        else:
+            print("Warning: Scaler not found in metadata file.")
+        return scaler
     except Exception as e:
         print(f"Warning: Could not load selected features scaler: {e}")
         return None
 
-# Cache the scaler at module level
 selected_features_scaler = load_selected_features_scaler()
 
 def preprocess_input_data(raw_features: List[List[float]]) -> np.ndarray:
     """Preprocess raw input features using the selected features scaler"""
     if selected_features_scaler is None:
-        print("Warning: No scaler available, returning raw features")
+        print("Warning: No scaler available, returning raw features for new endpoint.")
         return np.array(raw_features)
     
     try:
-        # Apply the same scaling used during training for the 15 selected features
         raw_array = np.array(raw_features)
         scaled_features = selected_features_scaler.transform(raw_array)
         return scaled_features
     except Exception as e:
-        print(f"Error in preprocessing: {e}")
-        return np.array(raw_features)
-
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "*",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        raise HTTPException(status_code=400, detail=f"Error during data preprocessing: {e}")
 
 @app.get("/health")
 def health():
@@ -87,73 +70,103 @@ def health():
 
 @app.get("/models")
 def get_models():
-    """Get list of available models with their feature requirements"""
+    """Get list of available models with metadata."""
     models = list_models(out_dir=get_model_dir())
-    model_info = {}
-    for model_name in models:
-        model_info[model_name] = {
+    return {
+        model_name: {
             "name": model_name,
             "type": "supervised" if model_name in ['random_forest', 'mlp'] else "unsupervised"
-        }
-    return model_info
+        } for model_name in models
+    }
 
+@app.post("/predict", response_model=PredictResponse, tags=["Legacy API"])
+def predict_legacy(req: PredictRequestLegacy):
+    """
+    LEGACY: Makes predictions without preprocessing data.
+    Accepts model name in the request body.
+    """
+    models = list_models(out_dir=get_model_dir())
+    if req.model not in models:
+        raise HTTPException(status_code=404, detail=f"Model '{req.model}' not found")
+    
+    model = load_model(req.model, out_dir=get_model_dir())
+    preds, proba = run_prediction(model, req.instances)
+    
+    return PredictResponse(model=req.model, predictions=preds, probabilities=proba)
 
-@app.post("/predict/{model_name}", response_model=PredictResponse)
-def predict_by_model(model_name: str, request: PredictRequest):
-    """Make predictions using a specific model"""
+@app.post("/predict/{model_name}", response_model=PredictResponse, tags=["New API"])
+def predict_new(model_name: str, request: PredictRequestNew):
+    """
+    NEW: Makes predictions WITH data preprocessing.
+    Accepts model name in the URL path.
+    """
     models = list_models(out_dir=get_model_dir())
     if model_name not in models:
         raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
-    
-    # Preprocess the input data using the same pipeline as training
+
     processed_instances = preprocess_input_data(request.instances)
-    
     model = load_model(model_name, out_dir=get_model_dir())
     preds, proba = run_prediction(model, processed_instances.tolist())
     
-    return PredictResponse(
-        model=model_name,
-        predictions=preds,
-        probabilities=proba,
-    )
+    return PredictResponse(model=model_name, predictions=preds, probabilities=proba)
 
-
-@app.get("/model-architecture/{model_name}")
+@app.get("/model-architecture/{model_name}", tags=["Utilities"])
 def get_model_architecture(model_name: str, top_k: int = 5):
+    """Get the architecture of a neural network model."""
     models = list_models(out_dir=get_model_dir())
     if model_name not in models:
         raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
-
     model = load_model(model_name, out_dir=get_model_dir())
-
     if not hasattr(model, "coefs_"):
         raise HTTPException(status_code=400, detail=f"Model '{model_name}' has no accessible architecture")
-
     layers = []
     for i, weights in enumerate(model.coefs_):
         edges = []
         for j in range(weights.shape[1]):
             sorted_idx = abs(weights[:, j]).argsort()[::-1][:top_k]
             for src_idx in sorted_idx:
-                edges.append({
-                    "src": int(src_idx),
-                    "tgt": int(j),
-                    "weight": float(weights[src_idx, j])
-                })
+                edges.append({"src": int(src_idx), "tgt": int(j), "weight": float(weights[src_idx, j])})
+        layers.append({"layer_index": i, "input_dim": weights.shape[0], "output_dim": weights.shape[1], "edges": edges})
+    return {"n_layers": model.n_layers_, "hidden_layer_sizes": model.hidden_layer_sizes, "out_activation": model.out_activation_, "layers": layers}
 
-        layers.append({
-            "layer_index": i,
-            "input_dim": weights.shape[0],
-            "output_dim": weights.shape[1],
-            "edges": edges
-        })
+@app.post("/compare-dataset")
+async def compare_dataset(file: UploadFile = File(...)):
+    try:
+        df_user = pd.read_csv(file.file)
+        df_user.columns = [col.strip().lower() for col in df_user.columns]
+        base_dir = Path(__file__).resolve().parent
+        ref_path = base_dir / "data_preprocessing" / "input" / "data.csv"
+        if not ref_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Reference dataset not found at {ref_path}"
+            )
+        df_ref = pd.read_csv(ref_path)
+        df_ref.columns = [col.strip().lower() for col in df_ref.columns]
+        user_cols = set(df_user.columns)
+        ref_cols = set(df_ref.columns)
+        overlap = len(user_cols & ref_cols)
+        missing_in_user = sorted(list(ref_cols - user_cols))
+        extra_in_user = sorted(list(user_cols - ref_cols))
+        similarity = min(
+            1.0,
+            (overlap / len(ref_cols)) * 0.5
+            + (min(len(df_user.columns), len(df_ref.columns)) / max(len(df_user.columns), len(df_ref.columns))) * 0.5,
+        )
+        return {
+            "reference_dataset": "TII-SSRC-23",
+            "records_uploaded": len(df_user),
+            "features_uploaded": len(df_user.columns),
+            "matching_features": overlap,
+            "similarity_score": round(similarity, 3),
+            "missing_features": missing_in_user,
+            "extra_features": extra_in_user,
+        }
+    except pd.errors.ParserError:
+        raise HTTPException(status_code=400, detail="Invalid CSV format. Please upload a valid CSV file.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Dataset comparison failed: {e}")
 
-    return {
-        "n_layers": model.n_layers_,
-        "hidden_layer_sizes": model.hidden_layer_sizes,
-        "out_activation": model.out_activation_,
-        "layers": layers
-    }
 
 if __name__ == "__main__":
     import uvicorn

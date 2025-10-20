@@ -2,7 +2,7 @@ import React from "react";
 import AboutHero from "../components/about/AboutHero";
 import AboutGallery from "../components/about/AboutGallery";
 import AboutMission from "../components/about/AboutMission";
-import ScrollProgressBar from "../components/ScrollProgressBar";
+import ScrollProgressBar from "../components/misc/ScrollProgressBar";
 
 const About = () => {
   return (

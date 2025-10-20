@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTheme } from '@mui/material/styles';
 import { Box, Typography, Button, Grid, Alert, CircularProgress, Paper, Stack } from '@mui/material';
 import { SAMPLES } from '../constants/model_playground';
 import ModelSelector from '../components/testing/ModelSelector';
@@ -8,6 +9,8 @@ import PredictionPanel from '../components/testing/PredictionPanel';
 import { predict } from '../api/predict';
 
 const Testing = () => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [selectedModel, setSelectedModel] = useState('random_forest');
   const [selectedSample, setSelectedSample] = useState('Audio');
   const [predictions, setPredictions] = useState(null);
@@ -44,17 +47,31 @@ const Testing = () => {
 
   return (
     <Box sx={{ p:3, maxWidth:1400, mx:'auto', minHeight:'100vh', bgcolor:'background.default' }}>
-      <Typography variant="h4" gutterBottom sx={{ mb:4, textAlign:'center' }}>Model Playground</Typography>
+      <Typography variant="h4" gutterBottom sx={{ 
+          mb:4, 
+          textAlign:'center',
+          fontWeight: 'bold',
+          color: isDark ? '#EF9B7D' : '#D95C39',
+      }}>
+        Model Playground
+      </Typography>
       <Grid container spacing={4} sx={{ height:'calc(100vh - 200px)' }}>
         <Grid size={6}>
           <Paper sx={{ p:3, height:'100%', display:'flex', flexDirection:'column' }}>
-            <Typography variant="h6" gutterBottom sx={{ mb:3 }}>Model Playground</Typography>
+            <Typography variant="h6" gutterBottom sx={{ mb:3 }}>Configuration</Typography>
             <Stack spacing={3} sx={{ flex:1 }}>
               <ModelSelector value={selectedModel} onChange={setSelectedModel} />
               <SampleSelector value={selectedSample} onChange={handleSampleChange} />
               <FeatureGrid values={values} onChange={handleValueChange} />
               <Button variant="contained" onClick={handlePredict} disabled={loading} fullWidth size="large"
-                sx={{ bgcolor:'success.main', '&:hover':{bgcolor:'success.dark'}, py:1.5 }}>
+                sx={{ 
+                  py:1.5,
+                  background: "linear-gradient(45deg, #6a11cb, #2575fc)",
+                  color: "#fff",
+                  '&:hover': {
+                    background: "linear-gradient(45deg, #5b0eb3, #1f63e0)",
+                  },
+                }}>
                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Predict'}
               </Button>
             </Stack>

@@ -6,16 +6,14 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
   const svgRef = useRef();
   const layersRef = useRef([]);
   const edgesRef = useRef([]);
-  
   const [activeClass, setActiveClass] = useState(0);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-
   const layerColors = useMemo(() => ["#4285F4", "#34A853", "#EA4335"], []); 
 
   const CLASS_LABELS = useMemo(() => [
     "Audio", "Background", "Bruteforce", "DoS",
     "Information Gathering", "Mirai", "Text", "Video",
-  ], []);
+  ]);
 
   const buttonStyles = {
     textTransform: "none", fontWeight: 600, borderRadius: "6px",
@@ -34,18 +32,23 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
 
   const buildNetwork = (data) => {
     const width = 1000, height = 600;
+    const yOffset = 80;
     const numLayers = data.layers.length + 1;
     const layerXSpacing = width / (numLayers + 1);
     const layers = [];
     
     const inputNeurons = d3.range(data.layers[0].input_dim).map((i) => ({
-      x: layerXSpacing, y: (i + 1) * (height / (data.layers[0].input_dim + 1)), layer: 0, index: i,
+      x: layerXSpacing, 
+      y: yOffset + (i + 1) * ((height - yOffset) / (data.layers[0].input_dim + 1)), 
+      layer: 0, index: i,
     }));
     layers.push({ neurons: inputNeurons, layer: 0 });
 
     data.layers.forEach((layer, idx) => {
       const neurons = d3.range(layer.output_dim).map((i) => ({
-        x: (idx + 2) * layerXSpacing, y: (i + 1) * (height / (layer.output_dim + 1)), layer: idx + 1, index: i,
+        x: (idx + 2) * layerXSpacing, 
+        y: yOffset + (i + 1) * ((height-yOffset) / (layer.output_dim + 1)), 
+        layer: idx + 1, index: i,
       }));
       layers.push({ neurons, layer: idx + 1 });
     });
@@ -68,6 +71,7 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
     svg.selectAll("*").remove();
 
     const width = 1000, height = 600;
+    const yOffset = 80;
     const layers = layersRef.current;
     const allEdges = edgesRef.current;
     const focusedEdges = [];
@@ -76,7 +80,7 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
     const maxLayer = Math.max(...allEdges.map((e) => e.layer));
 
     for (let l = maxLayer; l >= 0; l--) {
-      const currentTargetsCopy = [...currentTargets]; // Create a copy to avoid unsafe reference
+      const currentTargetsCopy = [...currentTargets]; 
       const matches = allEdges.filter((e) => e.layer === l && currentTargetsCopy.includes(e.tgt.index));
       if (matches.length === 0) continue;
       focusedEdges.push(...matches);
@@ -97,7 +101,9 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
 
     Object.values(activeMap).forEach((neurons) => {
       const n = neurons.length;
-      neurons.forEach((neuron, i) => { neuron.y = (i + 1) * (height / (n + 1)); });
+      neurons.forEach((neuron, i) => { 
+        neuron.y = yOffset + (i + 1) * ((height - yOffset) / (n + 1)); 
+      });
     });
 
     const svgContainer = svg.attr("width", width).attr("height", height);
@@ -183,7 +189,7 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
 
     if (allHiddenNeurons.length > 0) {
         const minX = d3.min(allHiddenNeurons.map(n => n.x)) - neuronRadius - padding;
-        const maxX = d3.max(allHiddenNeurons.map(n => n.x)) + neuronRadius + padding;
+        const maxX = d3.max(allHiddenNeurons.map(n => n.x)) + neuronRadius - padding;
         const minY = d3.min(allHiddenNeurons.map(n => n.y)) - neuronRadius - padding;
         svgContainer.append("text").attr("x", minX + (maxX - minX) / 2).attr("y", minY - labelOffset / 2)
           .attr("text-anchor", "middle").attr("font-size", 16).attr("font-weight", "bold")
@@ -200,7 +206,7 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
             .attr("text-anchor", "middle").attr("font-size", 16)
             .attr("fill", isDark ? "#F0C966" : "#000").text(CLASS_LABELS[activeClass]);
     }
-  }, [isDark, activeClass, CLASS_LABELS, layerColors]);
+  }, [isDark, activeClass, CLASS_LABELS, layerColors, buildNetwork]);
 
   useEffect(() => {
     if (!isDataLoaded) return;
