@@ -26,9 +26,11 @@ class PredictResponse(BaseModel):
     probabilities: Optional[List[List[float]]] = None
 
 app = FastAPI(title="Model Inference API", version="2.0.0")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in origins if o.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

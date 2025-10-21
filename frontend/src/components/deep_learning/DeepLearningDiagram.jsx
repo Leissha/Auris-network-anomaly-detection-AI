@@ -13,7 +13,7 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
   const CLASS_LABELS = useMemo(() => [
     "Audio", "Background", "Bruteforce", "DoS",
     "Information Gathering", "Mirai", "Text", "Video",
-  ]);
+  ], []);
 
   const buttonStyles = {
     textTransform: "none", fontWeight: 600, borderRadius: "6px",
@@ -206,7 +206,7 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
             .attr("text-anchor", "middle").attr("font-size", 16)
             .attr("fill", isDark ? "#F0C966" : "#000").text(CLASS_LABELS[activeClass]);
     }
-  }, [isDark, activeClass, CLASS_LABELS, layerColors, buildNetwork]);
+  }, [isDark, activeClass, CLASS_LABELS, layerColors]);
 
   useEffect(() => {
     if (!isDataLoaded) return;

@@ -5,7 +5,6 @@ import {
   Typography,
   Grid,
   CircularProgress,
-  CircularProgressProps,
 } from "@mui/material";
 const AnimatedStat = ({ value, label, duration = 800 }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -33,7 +32,7 @@ const AnimatedStat = ({ value, label, duration = 800 }) => {
           WebkitTextFillColor: "transparent",
         }}
       >
-        {value.toLocaleString()}
+        {displayValue.toLocaleString()}
       </Typography>
       <Typography variant="body1" sx={{ mt: 0.5, color: "text.primary" }}>
         {label}

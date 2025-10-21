@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -22,12 +22,12 @@ const LiveHistogram = ({ data = [] }) => {
     "Text",
     "Video",
   ];
-  const MALICIOUS_TYPES = new Set([
+  const MALICIOUS_TYPES = useMemo(() => new Set([
     "Bruteforce",
     "DoS",
     "Information Gathering",
     "Mirai",
-  ]);
+  ]), []);
   const typeLookup = TRAFFIC_TYPES.reduce((acc, label) => {
     const key = label.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
     acc[key] = label;
@@ -44,7 +44,7 @@ const LiveHistogram = ({ data = [] }) => {
     return null;
   };
 
-  const normalizeType = (rawType) => {
+  const normalizeType = useCallback((rawType) => {
     if (!rawType) return "Background";
     const cleanedKey = String(rawType).toLowerCase().replace(/[^a-z0-9]/g, "");
     if (typeLookup[cleanedKey]) return typeLookup[cleanedKey];
@@ -62,7 +62,7 @@ const LiveHistogram = ({ data = [] }) => {
       .toLowerCase()
       .replace(/\b\w/g, (c) => c.toUpperCase());
     return pretty || "Background";
-  };
+  }, [typeLookup]);
 
   const computeConfidence = (bytes, observedMax = null) => {
     const b = Math.max(0, Number(bytes) || 0);
@@ -109,6 +109,7 @@ const LiveHistogram = ({ data = [] }) => {
       d3.select("body").selectAll(".d3-tooltip-livehist").remove();
     };
   }, [isDark]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const width = 800;
     const height = 450;
@@ -273,10 +274,11 @@ const LiveHistogram = ({ data = [] }) => {
       .style("font-size", "13px")
       .text("Malicious");
     svgRef.current.__drawHistogram = draw;
+    const currentSvgRef = svgRef.current;
     return () => {
-      if (svgRef.current) svgRef.current.__drawHistogram = null;
+      if (currentSvgRef) currentSvgRef.__drawHistogram = null;
     };
-  }, [isDark]); // only re-create base chart when theme changes
+  }, [isDark, MALICIOUS_TYPES, normalizeType, data]); // only re-create base chart when theme changes
   useEffect(() => {
     const svgEl = svgRef.current;
     const draw = svgEl ? svgEl.__drawHistogram : null;

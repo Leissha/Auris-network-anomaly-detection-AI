@@ -61,3 +61,6 @@ Thumbs.db
 # *.npz
 # *.csv
 # *.json
+
+# Key
+.env

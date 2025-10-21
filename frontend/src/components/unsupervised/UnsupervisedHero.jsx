@@ -9,7 +9,7 @@ const UnsupervisedHero = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
     const [data, setData] = useState([]);
-    const [confidence, setConfidence] = useState(0.85);
+    const [, setConfidence] = useState(0.85);
     const buildFeatureVector = () => Array(15).fill(0.5);
 
     useEffect(() => {
@@ -23,7 +23,7 @@ const UnsupervisedHero = () => {
                 });
 
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const result = await res.json();
+                await res.json();
                 const isMalicious = Math.random() < 0.2;
                 const totalBytes = Math.random() * 8000 + 1000;
                 let normalConfidence, maliciousConfidence;

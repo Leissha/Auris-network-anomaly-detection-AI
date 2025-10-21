@@ -22,7 +22,7 @@ Backend SwaggerUI: `http://127.0.0.1:8000/docs`.
 ### Frontend
 
 ```bash
-cd Frontend
+cd frontend
 npm install
 npm start
 ```
