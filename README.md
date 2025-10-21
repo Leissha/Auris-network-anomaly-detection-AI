@@ -1,3 +1,6 @@
+## Backend development:
+Details: `https://github.com/Schnitze1/COS30049-Computing-Technology-Innovation-Project`
+
 ## Quick Start
 
 ### Backend
