@@ -16,7 +16,7 @@ const UnsupervisedHero = () => {
         const interval = setInterval(async () => {
             try {
                 const payload = { model: 'dbscan', instances: [buildFeatureVector()] };
-                const res = await fetch('http://127.0.0.1:8000/predict/dbscan', {
+                const res = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000'}/predict/dbscan`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),

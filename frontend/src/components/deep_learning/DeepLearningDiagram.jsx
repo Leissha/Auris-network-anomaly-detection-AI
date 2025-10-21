@@ -21,7 +21,7 @@ const DeepLearningDiagram = ({ modelName = "mlp", isDark = false }) => {
   };
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/model-architecture/${modelName}?top_k=2`)
+    fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000'}/model-architecture/${modelName}?top_k=2`)
       .then((res) => res.json())
       .then((data) => {
         buildNetwork(data);

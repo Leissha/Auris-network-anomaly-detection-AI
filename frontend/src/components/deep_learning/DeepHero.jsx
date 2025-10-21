@@ -31,7 +31,7 @@ const DeepHero = () => {
     useEffect(() => {
         setIsLoading(true);
         const handler = setTimeout(() => {
-            fetch('http://127.0.0.1:8000/predict', {
+            fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000'}/predict`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ model: 'mlp', instances: [featureVector] })

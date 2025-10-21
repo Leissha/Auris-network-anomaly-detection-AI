@@ -104,7 +104,7 @@ const DatasetMetrics = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://127.0.0.1:8000/compare-dataset", {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000'}/compare-dataset`, {
         method: "POST",
         body: formData,
       });
