@@ -1,11 +1,13 @@
 # uvicorn serve:app --host 0.0.0.0 --port 8000 --reload
 # UI: http://127.0.0.1:8000/docs
 import os
+import time
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from utils.model_io import list_models, load_model
 from config import get_model_dir
 from utils.predict import run_prediction
@@ -19,6 +21,14 @@ class PredictRequestNew(BaseModel):
 class PredictRequestLegacy(BaseModel):
     model: str
     instances: List[List[float]]
+    
+    # Request Validation Debugging
+    # This or HTTP Exception would be better? which one would catch error earlier?
+    @validator('model'):
+    def check_model_name(cls, v):
+        if v not in list_models(out_dir=get_model_dir()):
+            raise ValueError(f"Model '{v}' not found")
+        return v
 
 class PredictResponse(BaseModel):
     model: str
@@ -27,6 +37,23 @@ class PredictResponse(BaseModel):
 
 app = FastAPI(title="Model Inference API", version="2.0.0")
 origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
+# Global Exception Handler: bind to all unhandled exceptions to catch all exceptions.
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"message": f"An_unexpected error occurred: {str(exc)}"}
+    )
+
+# Middleware for Debugging: track req and res cycles, execution time
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
 
 app.add_middleware(
     CORSMiddleware,
