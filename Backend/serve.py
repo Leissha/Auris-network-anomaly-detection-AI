@@ -24,7 +24,7 @@ class PredictRequestLegacy(BaseModel):
     
     # Request Validation Debugging
     # This or HTTP Exception would be better? which one would catch error earlier?
-    @validator('model'):
+    @validator('model')
     def check_model_name(cls, v):
         if v not in list_models(out_dir=get_model_dir()):
             raise ValueError(f"Model '{v}' not found")
