@@ -2,7 +2,7 @@ name: Sync Upstream
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Daily at midnight
+    - cron: '*/15 * * * *'  # Every 15 minutes
   workflow_dispatch:  # Manual trigger
 
 jobs:
@@ -14,10 +14,23 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+      
       - name: Sync upstream
         run: |
           git remote add upstream https://github.com/Schnitze1/COS30049-Computing-Technology-Innovation-Project-2.git
           git fetch upstream
           git checkout main
+          
+          # Check if there are new commits
+          if git merge-base --is-ancestor HEAD upstream/main; then
+            echo "No new commits to sync"
+            exit 0
+          fi
+          
+          # Merge and push if there are changes
           git merge upstream/main
           git push origin main
