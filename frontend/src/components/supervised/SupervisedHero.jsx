@@ -7,6 +7,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
+import { predict } from "../../api/predict";
+import { FEATURE_NAMES, SAMPLES } from "../../constants/model_playground";
 import {
   Box,
   Typography,
@@ -23,17 +25,14 @@ import PieChart from "./PieChart";
 import ScrollProgressBar from "../misc/ScrollProgressBar";
 
 const SIMPLE_CLASS_LABELS = ["Normal", "Malicious"];
-const ADVANCED_CLASS_LABELS = [
-  "Audio", "Background", "Bruteforce", "DoS",
-  "Information Gathering", "Mirai", "Text", "Video",
-];
+const ADVANCED_CLASS_LABELS = Object.keys(SAMPLES);
 
 const CONTROLLED_FEATURES = [
-  { name: "Flow Duration", index: 0 },
-  { name: "Fwd Packet Length Max", index: 1 },
-  { name: "FWD Init Win Bytes", index: 2 },
-  { name: "Flow Bytes/s", index: 3 },
-  { name: "Flow IAT Mean", index: 4 },
+  { name: FEATURE_NAMES[1], index: 1 }, // Flow Duration
+  { name: FEATURE_NAMES[0], index: 0 }, // Fwd Packet Length Max
+  { name: FEATURE_NAMES[2], index: 2 }, // FWD Init Win Bytes
+  { name: FEATURE_NAMES[3], index: 3 }, // Flow Bytes/s
+  { name: FEATURE_NAMES[4], index: 4 }, // Flow IAT Mean
 ];
 
 const MODEL_FEATURE_COUNT = 15;
@@ -65,15 +64,7 @@ export default function SupervisedHero() {
     setIsLoading(true);
 
     const handler = setTimeout(() => {
-      fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000'}/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "random_forest",
-          instances: [payload],
-        }),
-      })
-        .then((res) => res.json())
+      predict("random_forest", payload)
         .then((data) => {
           const rawProbs = data?.probabilities?.[0] ?? [1, 0, 0, 0];
 
@@ -224,7 +215,7 @@ export default function SupervisedHero() {
         }}
       >
         {CONTROLLED_FEATURES.map((feature, i) => (
-          <Grid item xs={12} sm={4} md={2.4} key={feature.name}>
+          <Grid size={{ xs: 12, sm: 4, md: 2.4 }} key={feature.name}>
             <Typography variant="caption" sx={{ fontWeight: 500, color: isDark ? "#FFF" : "#000", display: "block", mb: 1 }}>
               {feature.name}
             </Typography>

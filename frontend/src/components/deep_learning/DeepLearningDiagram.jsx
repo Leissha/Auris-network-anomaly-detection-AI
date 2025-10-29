@@ -8,16 +8,15 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import * as d3 from "d3";
 import { Button, Box } from "@mui/material";
+import { getModelArchitecture } from "../../api/predict";
+import { SAMPLES } from "../../constants/model_playground";
 
 // The size of SVG's viewBox
 const SVG_WIDTH = 1000;
 const SVG_HEIGHT = 600;
 
 // Labels for the output layer classifications
-const CLASS_LABELS = [
-  "Audio", "Background", "Bruteforce", "DoS",
-  "Information Gathering", "Mirai", "Text", "Video",
-];
+const CLASS_LABELS = Object.keys(SAMPLES);
 
 // Consistent styling for the class selection buttons
 const BUTTON_STYLES = {
@@ -35,6 +34,7 @@ export default function DeepLearningDiagram({ modelName = "mlp", isDark = false 
   const edgesRef = useRef([]);
   const [activeClass, setActiveClass] = useState(0);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [error, setError] = useState(null);
   const layerColors = useMemo(() => ["#4285F4", "#34A853", "#EA4335"], []);
 
   const buildNetwork = useCallback((data) => {
@@ -180,17 +180,19 @@ export default function DeepLearningDiagram({ modelName = "mlp", isDark = false 
         .attr("text-anchor", "middle").attr("font-size", 16)
         .attr("fill", isDark ? "#F0C966" : "#000").text(CLASS_LABELS[activeClass]);
     }
-  }, [isDark, activeClass, layerColors, CLASS_LABELS]);
+   }, [isDark, activeClass, layerColors]);
 
   useEffect(() => {
-    const apiUrl = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
-    fetch(`${apiUrl}/model-architecture/${modelName}?top_k=2`)
-      .then((res) => res.json())
+    setError(null);
+    getModelArchitecture(modelName, 2)
       .then((data) => {
         buildNetwork(data);
         setIsDataLoaded(true);
       })
-      .catch((err) => console.error("Failed to fetch model architecture:", err));
+      .catch((err) => {
+        console.error("Failed to fetch model architecture:", err);
+        setError(err.message);
+      });
   }, [modelName, buildNetwork]);
 
   useEffect(() => {
@@ -198,6 +200,19 @@ export default function DeepLearningDiagram({ modelName = "mlp", isDark = false 
       drawDiagram(activeClass);
     }
   }, [activeClass, isDark, isDataLoaded, drawDiagram]);
+
+  if (error) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <div style={{ color: isDark ? "#ff6b6b" : "#d32f2f", fontSize: "18px", marginBottom: "20px" }}>
+          Error loading model architecture: {error}
+        </div>
+        <div style={{ color: isDark ? "#ccc" : "#666", fontSize: "14px" }}>
+          Please check if the backend server is running and the MLP model is available.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Box>

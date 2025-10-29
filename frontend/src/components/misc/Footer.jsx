@@ -60,7 +60,7 @@ export default function Footer() {
     >
       <Grid container spacing={4}>
         {/* Section 1: Logo, Brand Statement, and GitHub Link */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Box sx={{ mb: 2 }}>
             <img
               src="/logo.svg"
@@ -100,7 +100,7 @@ export default function Footer() {
         </Grid>
 
         {/* Section 2: Navigation Links */}
-        <Grid item xs={6} md={2}>
+        <Grid size={{ xs: 6, md: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
             Navigation
           </Typography>
@@ -123,7 +123,7 @@ export default function Footer() {
         </Grid>
 
         {/* Section 3: Model Links */}
-        <Grid item xs={6} md={2}>
+        <Grid size={{ xs: 6, md: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
             Models
           </Typography>
@@ -146,7 +146,7 @@ export default function Footer() {
         </Grid>
 
         {/* Section 4: Author Credits */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
             Authors
           </Typography>

@@ -12,6 +12,7 @@ import { Box, IconButton } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import * as d3 from "d3";
+import { SAMPLES } from "../../constants/model_playground";
 
 // The "native" dimensions for the SVG's viewBox.
 const SVG_WIDTH = 800;
@@ -26,7 +27,7 @@ const MARGIN = {
  * @returns {string} The standardized traffic type name.
  */
 const normalizeType = (rawType) => {
-  if (!rawType) return "Background";
+  if (!rawType) return Object.keys(SAMPLES)[1]; // "Background"
   const cleaned = String(rawType).toLowerCase().replace(/[^a-z0-9]/g, "");
   // Simple keyword matching for common types.
   if (cleaned.includes("mirai")) return "Mirai";

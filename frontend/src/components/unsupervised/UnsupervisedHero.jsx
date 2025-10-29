@@ -118,7 +118,7 @@ export default function UnsupervisedHero() {
           backgroundColor: isDark ? '#1C1C1C' : '#EFF0EB', borderRadius: '16px',
         }}
       >
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Typography gutterBottom sx={{ color: isDark ? '#FFF' : '#000' }}>
             Epsilon (eps):
             {' '}
@@ -139,7 +139,7 @@ export default function UnsupervisedHero() {
             }}
           />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Typography gutterBottom sx={{ color: isDark ? '#FFF' : '#000' }}>
             Minimum Samples:
             {' '}

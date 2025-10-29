@@ -8,7 +8,7 @@ export default function FeatureGrid({ values, onChange }) {
       <Grid container spacing={2}>
         {FEATURE_NAMES.map((name, i) => (
           // Use responsive grid props: full width on mobile, half width on larger screens
-          <Grid item key={i} xs={12} sm={6}>
+          <Grid key={i} size={{ xs: 12, sm: 6 }}>
             <TextField
               fullWidth size="small"
               label={name || `Feature ${i + 1}`}

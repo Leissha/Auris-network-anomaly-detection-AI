@@ -7,6 +7,8 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { predict } from "../../api/predict";
+import { FEATURE_NAMES, SAMPLES } from "../../constants/model_playground";
 import {
   useTheme,
   Box,
@@ -21,25 +23,22 @@ import { ProbabilityColumnChart } from "./ProbabilityColumnChart";
 
 // Predefined feature vectors for network traffic simulations
 const SIMULATION_PRESETS = {
-  'DoS': [0.0, 0.000336, 0.0, 0.0, 4.7e-05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-  'Bruteforce': [0.85, 0.000336, 0.75, 0.165951, 0.000944, 0.001881, 7e-05, 9.3e-05, 0.643275, 0.0, 0.067669, 0.197067, 0.783383, 0.0, 0.049119],
-  'Background': [0.924297, 0.000336, 0.352941, 0.0, 4.7e-05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  'DoS': SAMPLES['DoS'],
+  'Bruteforce': SAMPLES['Bruteforce'],
+  'Background': SAMPLES['Background']
 };
 
 // The top five most impactful features for the model, used to create the sliders
 const TOP_FEATURES = [
-  { name: 'Flow Duration', index: 0 },
-  { name: 'Fwd Packet Length Max', index: 1 },
-  { name: 'FWD Init Win Bytes', index: 2 },
-  { name: 'Flow Bytes/s', index: 3 },
-  { name: 'Flow IAT Mean', index: 4 }
+  { name: FEATURE_NAMES[1], index: 1 }, // Flow Duration
+  { name: FEATURE_NAMES[0], index: 0 }, // Fwd Packet Length Max
+  { name: FEATURE_NAMES[2], index: 2 }, // FWD Init Win Bytes
+  { name: FEATURE_NAMES[3], index: 3 }, // Flow Bytes/s
+  { name: FEATURE_NAMES[4], index: 4 }  // Flow IAT Mean
 ];
 
 // The labels for the possible classification outcomes from the model
-const CLASS_LABELS = [
-  "Audio", "Background", "Bruteforce", "DoS",
-  "Information Gathering", "Mirai", "Text", "Video"
-];
+const CLASS_LABELS = Object.keys(SAMPLES);
 
 /**
  * Renders the main interactive hero section for the deep learning model.
@@ -58,13 +57,7 @@ export default function DeepHero() {
   useEffect(() => {
     setIsLoading(true);
     const requestTimer = setTimeout(() => {
-      const apiUrl = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
-      fetch(`${apiUrl}/predict`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'mlp', instances: [featureVector] })
-      })
-        .then(res => res.json())
+      predict('mlp', featureVector)
         .then(data => {
           if (data.probabilities && data.probabilities.length > 0) {
             setProbabilities(data.probabilities[0]);
@@ -193,7 +186,7 @@ export default function DeepHero() {
         }}
       >
         {TOP_FEATURES.map((feature) => (
-          <Grid item xs={12} sm={4} md={2.4} key={feature.index} sx={{ textAlign: 'center', minWidth: 150 }}>
+          <Grid size={{ xs: 12, sm: 4, md: 2.4 }} key={feature.index} sx={{ textAlign: 'center', minWidth: 150 }}>
             <Typography variant="caption" sx={{ fontWeight: 500, color: isDark ? '#FFF' : '#000', display: 'block', mb: 1 }}>
               {feature.name}
             </Typography>

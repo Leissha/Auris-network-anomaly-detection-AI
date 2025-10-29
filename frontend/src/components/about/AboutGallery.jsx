@@ -123,11 +123,10 @@ export default function AboutGallery() {
         sx={{
           position: "relative",
           width: { xs: '100%', md: TARGET_WIDTH },
-          height: { md: TARGET_HEIGHT },
+          height: { xs: 0, md: TARGET_HEIGHT },
           maxWidth: "100%",
           overflow: "hidden",
           // Aspect ratio is only needed for the mobile responsive view
-          height: { xs: 0, md: TARGET_HEIGHT },
           paddingTop: { xs: `${(TARGET_HEIGHT / TARGET_WIDTH) * 100}%`, md: 0 },
         }}
       >

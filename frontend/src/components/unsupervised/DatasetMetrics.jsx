@@ -9,6 +9,7 @@ import React, { useState, useEffect } from "react";
 import {
   Box, Button, Typography, Grid, CircularProgress, useTheme, // Added useTheme
 } from "@mui/material";
+import { compareDataset } from "../../api/predict";
 
 /**
  * Renders a single statistic with a count-up animation.
@@ -135,18 +136,7 @@ export default function DatasetMetrics() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const apiUrl = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
-      const response = await fetch(`${apiUrl}/compare-dataset`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API Error: ${errorText}`);
-      }
-
-      const result = await response.json();
+      const result = await compareDataset(formData);
       // Update state after API call completes
       setNumRecords(result.records_uploaded);
       setNumFeatures(result.features_uploaded);
@@ -204,14 +194,14 @@ export default function DatasetMetrics() {
             <strong>{fileName}</strong>
           </Typography>
           <Grid container spacing={4} justifyContent="center">
-            <Grid item xs={6} md={3}>
+            <Grid size={{ xs: 6, md: 3 }}>
               <AnimatedStat value={numFeatures} label="Features" />
             </Grid>
-            <Grid item xs={6} md={3}>
+            <Grid size={{ xs: 6, md: 3 }}>
               {/* Animation for (5s) */}
               <AnimatedStat value={numRecords} label="Records" duration={5000} />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <AnimatedStat value={featureOverlap} label="Matching Features" />
             </Grid>
           </Grid>

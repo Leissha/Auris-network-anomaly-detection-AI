@@ -72,7 +72,7 @@ export default function PredictionPanel({ predictions }) {
       {/* Detailed Prediction Breakdown */}
       <Grid container spacing={2}>
         {/* Column 1: List of all predictions (for multiple samples) */}
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <Typography variant="subtitle2" gutterBottom>
             Predictions:
           </Typography>
@@ -89,7 +89,7 @@ export default function PredictionPanel({ predictions }) {
         </Grid>
 
         {/* Column 2: List of all probabilities */}
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <Typography variant="subtitle2" gutterBottom>
             Probabilities:
           </Typography>
