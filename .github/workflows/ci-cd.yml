@@ -36,8 +36,7 @@ jobs:
       - name: Run tests
         run: |
           cd frontend
-          echo "Skipping tests for now - focusing on build"
-          # CI=true npm test -- --coverage --watchAll=false --testTimeout=10000 --passWithNoTests
+          CI=true npm test -- --coverage --watchAll=false --testTimeout=20000 --passWithNoTests
       
       - name: Build frontend
         run: |
@@ -70,7 +69,13 @@ jobs:
         run: |
           cd Backend
           pip install -r requirements.txt
+          pip install pycodestyle
       
+      - name: PEP 8 check (Backend)
+        run: |
+          cd Backend
+          pycodestyle . --max-line-length=100 --exclude .venv,node_modules
+
       - name: Run backend tests
         run: |
           cd Backend
